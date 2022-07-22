@@ -14,3 +14,21 @@ impl Server {
 
     fn run(self) {}
 }
+
+struct HttpRequest {
+    path: String,
+    query_string: String,
+    method: HttpMethod,
+}
+
+enum HttpMethod {
+    GET,
+    DELETE,
+    POST,
+    PUT,
+    HEAD,
+    CONNECT,
+    OPTIONS,
+    TRACE,
+    PATCH,
+}

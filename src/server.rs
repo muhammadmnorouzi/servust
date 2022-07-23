@@ -1,4 +1,4 @@
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
 
 pub struct Server {
     address: String,
@@ -13,5 +13,16 @@ impl Server {
         println!("listening on {:}", self.address);
 
         let listener = TcpListener::bind(&self.address).unwrap();
+
+        loop {
+            match listener.accept() {
+                Ok((stream, address)) => {
+                    println!("OK!");
+                }
+                Err(error) => {
+                    println!("Connection failed : {}", error);
+                }
+            }
+        }
     }
 }

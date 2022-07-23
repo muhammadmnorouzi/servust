@@ -1,3 +1,3 @@
 # Servust
 
-## A simple HTTP server written in rust.
+## A simple HTTP/1.1 server written in rust.

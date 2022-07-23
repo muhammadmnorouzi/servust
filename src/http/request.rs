@@ -1,4 +1,4 @@
-use super::method::Method;
+use super::method::{Method, MethodError};
 use std::str;
 use std::str::Utf8Error;
 use std::{
@@ -32,6 +32,12 @@ impl Display for ParsingError {
 //     }
 // }
 
+impl From<MethodError> for ParsingError {
+    fn from(_: MethodError) -> Self {
+        ParsingError::InvalidMethod
+    }
+}
+
 impl From<Utf8Error> for ParsingError {
     fn from(_: Utf8Error) -> Self {
         ParsingError::InvalidEncoding
@@ -56,6 +62,28 @@ impl TryFrom<&[u8]> for Request {
 
     fn try_from(buffer: &[u8]) -> Result<Self, Self::Error> {
         let request = str::from_utf8(buffer)?;
+
+        // GET /things?for=atfp
+        let (method, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
+        let (path, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
+        let (protocol, _) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
+
+        if protocol != "HTTP/1.1" {
+            return Err(ParsingError::InvalidProtocol);
+        }
+
+        let method: Method = method.parse()?;
+
         todo!()
     }
+}
+
+fn get_next_word(request: &str) -> Option<(&str, &str)> {
+    for (i, c) in request.chars().enumerate() {
+        if c == ' ' {
+            return Some((&request[..i], &request[i + 1..]));
+        }
+    }
+
+    None
 }

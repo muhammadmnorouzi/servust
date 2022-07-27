@@ -1,5 +1,6 @@
 use super::method::{Method, MethodError};
 use super::QueryString;
+use std::fmt::Debug;
 use std::str;
 use std::str::Utf8Error;
 use std::{
@@ -7,6 +8,7 @@ use std::{
     fmt::{Display, Result as FmtResult},
 };
 
+#[derive(Debug)]
 pub struct Request<'buf> {
     path: &'buf str,
     query_string: Option<QueryString<'buf>>,
@@ -25,12 +27,6 @@ impl Display for ParsingError {
         write!(f, "{}", self.message())
     }
 }
-
-// impl Debug for ParsingError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> FmtResult {
-//         Ok(self.message())
-//     }
-// }
 
 impl From<MethodError> for ParsingError {
     fn from(_: MethodError) -> Self {
@@ -55,8 +51,6 @@ impl ParsingError {
     }
 }
 
-// impl Error for ParsingError {}
-
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParsingError;
 
@@ -68,7 +62,10 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
         let (mut path, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
         let (protocol, _) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
 
-        if protocol != "HTTP/1.1" {
+        println!("_{}_", protocol);
+
+        // if protocol.contains("HTTP/1.1") != "HTTP/1.1" {
+        if !protocol.contains("HTTP/1.1") {
             return Err(ParsingError::InvalidProtocol);
         }
 
@@ -90,10 +87,16 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
 
 fn get_next_word(request: &str) -> Option<(&str, &str)> {
     for (i, c) in request.chars().enumerate() {
-        if c == ' ' {
+        if c == ' ' || c == '\n' {
             return Some((&request[..i], &request[i + 1..]));
         }
     }
 
     None
+}
+
+impl Debug for ParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> FmtResult {
+        write!(f, "{}", self.message())
+    }
 }

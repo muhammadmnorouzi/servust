@@ -1,4 +1,4 @@
-use crate::http::{request, Request};
+use crate::http::Request;
 use std::convert::TryFrom;
 use std::io::Read;
 use std::net::TcpListener;
@@ -19,7 +19,7 @@ impl Server {
 
         loop {
             match listener.accept() {
-                Ok((mut stream, address)) => {
+                Ok((mut stream, _)) => {
                     let mut buffer = [0; 4096];
 
                     match stream.read(&mut buffer) {
@@ -27,7 +27,9 @@ impl Server {
                             println!("Read data -> {}", String::from_utf8_lossy(&buffer));
 
                             match Request::try_from(&buffer as &[u8]) {
-                                Ok(request) => {}
+                                Ok(request) => {
+                                    dbg!(request);
+                                }
                                 Err(error) => println!("Parsing request failed -> {}", error),
                             }
                         }

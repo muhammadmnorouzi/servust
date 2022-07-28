@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::{
     http::{HttpStatusCode, Response},
     server::HttpRequestHandler,
@@ -11,24 +13,20 @@ impl WebsiteHandler {
     pub fn new(public_path: String) -> Self {
         Self { public_path }
     }
+
+    pub fn read_file(&self, file_path: &str) -> Option<String> {
+        let path = format!("{}/{}", self.public_path, file_path);
+        fs::read_to_string(path).ok()
+    }
 }
 
 impl HttpRequestHandler for WebsiteHandler {
     fn handle_request(&mut self, request: &crate::http::Request) -> crate::http::Response {
         match request.method() {
             crate::http::Method::GET => match request.path() {
-                "/" => Response::new(
-                    HttpStatusCode::Ok,
-                    Some("<h1>Welcome to root page</h1>".to_string()),
-                ),
-                "/hello" => Response::new(
-                    HttpStatusCode::Ok,
-                    Some("<h1>Welcome to Hello page</h1>".to_string()),
-                ),
-                _ => Response::new(
-                    HttpStatusCode::NotFound,
-                    Some("<h1>Page not found</h1>".to_string()),
-                ),
+                "/" => Response::new(HttpStatusCode::Ok, self.read_file("index.html")),
+                "/hello" => Response::new(HttpStatusCode::Ok, self.read_file("hello.html")),
+                _ => Response::new(HttpStatusCode::NotFound, self.read_file("not_found.html")),
             },
             crate::http::Method::DELETE => todo!(),
             crate::http::Method::POST => todo!(),

@@ -14,6 +14,7 @@ impl WebsiteHandler {
         Self { public_path }
     }
 
+    // Unsafe in case of potentially directory traversal attacks
     pub fn read_file(&self, file_path: &str) -> Option<String> {
         let path = format!("{}/{}", self.public_path, file_path);
         fs::read_to_string(path).ok()
@@ -26,7 +27,12 @@ impl HttpRequestHandler for WebsiteHandler {
             crate::http::Method::GET => match request.path() {
                 "/" => Response::new(HttpStatusCode::Ok, self.read_file("index.html")),
                 "/hello" => Response::new(HttpStatusCode::Ok, self.read_file("hello.html")),
-                _ => Response::new(HttpStatusCode::NotFound, self.read_file("not_found.html")),
+                path => match self.read_file(path) {
+                    Some(content) => Response::new(HttpStatusCode::Ok, Some(content)),
+                    None => {
+                        Response::new(HttpStatusCode::NotFound, self.read_file("not_found.html"))
+                    }
+                },
             },
             crate::http::Method::DELETE => todo!(),
             crate::http::Method::POST => todo!(),

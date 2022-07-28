@@ -57,7 +57,6 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     fn try_from(buffer: &'buf [u8]) -> Result<Request<'buf>, Self::Error> {
         let request = str::from_utf8(buffer)?;
 
-        // GET /things?for=atfp
         let (method, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
         let (mut path, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
         let (protocol, _) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;

@@ -62,10 +62,8 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
         let (mut path, request) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
         let (protocol, _) = get_next_word(request).ok_or(ParsingError::InvalidRequest)?;
 
-        println!("_{}_", protocol);
-
-        // if protocol.contains("HTTP/1.1") != "HTTP/1.1" {
-        if !protocol.contains("HTTP/1.1") {
+        if protocol != "HTTP/1.1" {
+            // if !protocol.contains("HTTP/1.1") {
             return Err(ParsingError::InvalidProtocol);
         }
 
@@ -87,7 +85,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
 
 fn get_next_word(request: &str) -> Option<(&str, &str)> {
     for (i, c) in request.chars().enumerate() {
-        if c == ' ' || c == '\n' {
+        if c == ' ' || c == '\r' || c == '\n' {
             return Some((&request[..i], &request[i + 1..]));
         }
     }
